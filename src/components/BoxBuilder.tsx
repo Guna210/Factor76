@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { ArrowLeft, ArrowUpRight, Check, Minus, Plus, RotateCcw, X } from 'lucide-react'
-import { formatLkr, meals, type Meal, type MealCategory } from '../data/meals'
+import { formatLkr, mealPhotoUrl, meals, type Meal, type MealCategory } from '../data/meals'
 import './BoxBuilder.css'
 
 interface BoxBuilderProps {
@@ -38,17 +38,8 @@ function readDraft(): Draft {
 
 function MealArt({ meal, small = false }: { meal: Meal; small?: boolean }) {
   return (
-    <div
-      className={`f76-box-art ${small ? 'f76-box-art--small' : ''}`}
-      style={{ '--dish-bg': meal.color, '--dish-accent': meal.accent } as CSSProperties}
-      aria-hidden="true"
-    >
-      <div className="f76-box-art__plate">
-        <i className="f76-box-art__rice" />
-        <i className="f76-box-art__main" />
-        <i className="f76-box-art__greens" />
-        <i className="f76-box-art__lime" />
-      </div>
+    <div className={`f76-box-art ${small ? 'f76-box-art--small' : ''}`} aria-hidden="true">
+      <img src={mealPhotoUrl(meal, small ? 360 : 720)} alt="" loading="lazy" decoding="async" />
     </div>
   )
 }

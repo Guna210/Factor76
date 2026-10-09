@@ -1,0 +1,38 @@
+@font-face {
+  font-family: FilmDisplay;
+  src: url("../fonts/barlow-condensed-800-latin.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; width: 1200px; height: 1200px; overflow: hidden; background: #17382d; }
+body { color: #fbf8ef; font-family: Arial, sans-serif; }
+#film { position: relative; width: 1200px; height: 1200px; overflow: hidden; isolation: isolate; background: #17382d; }
+.clip { position: absolute; inset: 0; overflow: hidden; color: #fbf8ef; background: #17382d; }
+.scene-photo { position: absolute; inset: -5%; z-index: 0; width: 110%; height: 110%; object-fit: cover; object-position: center; transform: scale(1.02); filter: saturate(.98); }
+.clip::after { content: ""; position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg, #14271feb 0%, #14271fc4 38%, #14271f40 76%, #14271f12 100%), linear-gradient(0deg, #14271fbf 0%, transparent 38%); pointer-events: none; }
+.scene-two::after { background: linear-gradient(90deg, #19241feb 0%, #19241fc0 38%, #19241f44 78%, #19241f14 100%), linear-gradient(0deg, #19241fbf 0%, transparent 38%); }
+.scene-three::after { background: linear-gradient(90deg, #26251de8 0%, #26251db7 39%, #26251d40 78%, #26251d12 100%), linear-gradient(0deg, #26251dbf 0%, transparent 38%); }
+.scene-four::after { background: linear-gradient(90deg, #17231ce8 0%, #17231cb5 39%, #17231c3b 78%, #17231c12 100%), linear-gradient(0deg, #17231cc4 0%, transparent 40%); }
+.film-meta, .film-footer { position: absolute; z-index: 4; left: 48px; right: 48px; display: flex; justify-content: space-between; align-items: center; color: #fffaf0; font: 500 12px/1.5 "Courier New", monospace; letter-spacing: 1.1px; text-shadow: 0 1px 7px #0007; }
+.film-meta { top: 40px; }
+.film-meta i { color: #e2bf73; font-style: normal; }
+.film-footer { bottom: 37px; font-size: 10px; letter-spacing: .8px; }
+.film-copy { position: absolute; z-index: 3; left: 7.4%; top: 31%; width: 78%; }
+.scene-index { display: inline-block; padding: 8px 11px; border: 1px solid #fbf8ef9c; border-radius: 25px; color: #fffaf0; font: 500 11px "Courier New", monospace; letter-spacing: .7px; text-shadow: 0 1px 8px #0007; }
+.scene-title { margin: 23px 0 16px; color: #fffaf0; font: 800 137px/.78 FilmDisplay, Impact, sans-serif; letter-spacing: -2px; text-shadow: 0 4px 22px #0006; }
+.scene-title em { color: #e2bf73; font-style: normal; }
+.film-copy > p { color: #fffaf0; font: 600 11px/1.5 "Courier New", monospace; letter-spacing: 1px; text-shadow: 0 1px 8px #0008; }
+.scene-two .scene-title { font-size: 127px; }
+.scene-three .scene-title { font-size: 124px; }
+.film-orbit { position: absolute; z-index: 2; right: 7%; top: 15%; width: 345px; height: 345px; border: 1px solid #fbf8ef84; border-radius: 50%; opacity: .7; }
+.film-orbit::before, .film-orbit::after { content: ""; position: absolute; inset: 9%; border: 1px solid #e2bf73a6; border-radius: 50%; transform: scaleX(.54) rotate(32deg); }
+.film-orbit::after { transform: scaleX(.54) rotate(-32deg); }
+.orbit-two { right: 8%; top: 18%; width: 360px; height: 360px; }
+.orbit-three { right: 7%; top: 17%; width: 350px; height: 350px; border-color: #e2bf7399; }
+.orbit-four { right: 8%; top: 16%; width: 365px; height: 365px; }
+.closing-brand { position: absolute; z-index: 3; left: 7.5%; top: 35%; color: #fffaf0; font: 800 183px/.82 FilmDisplay, Impact, sans-serif; letter-spacing: -8px; white-space: nowrap; text-shadow: 0 4px 24px #0007; }
+.closing-brand > span { color: #e2bf73; }
+.closing-brand sup { color: #f1d0b1; vertical-align: top; margin-left: 8px; font: 800 43px Arial, sans-serif; }
+.closing-copy { position: absolute; z-index: 3; left: 7.5%; right: 7.5%; top: 67%; display: flex; justify-content: space-between; align-items: end; color: white; font: 700 20px/1.13 FilmDisplay, Impact, sans-serif; letter-spacing: .3px; text-shadow: 0 2px 12px #0006; }
+.closing-copy > span:last-child { text-align: right; color: #f7d794; font: 500 10px/1.6 "Courier New", monospace; letter-spacing: .8px; }

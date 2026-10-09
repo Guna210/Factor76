@@ -1,38 +1,35 @@
-/* HyperFrames owns this paused, deterministic timeline. No wall-clock animation. */
+/* The parent scrolls this HyperFrames timeline for a photo-led food film. */
 (() => {
-  const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.inOut' } });
-  // Each scene spans an explicit clip window. GSAP also masks it for simple
-  // timeline-only players, so random seeks and CLI rendering look identical.
-  tl.set('#next-scene, #city-scene, #brand-scene', { autoAlpha: 0 }, 0);
-  tl.fromTo('.fuel-word > span', { y: 570, rotate: 7 }, { y: 0, rotate: 0, duration: 1.18, stagger: 0.085, ease: 'power4.out' }, 0);
-  tl.fromTo('.fuel-caption', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, 0.3);
-  tl.fromTo('.fuel-word i', { scale: 0, rotate: -100 }, { scale: 1, rotate: 20, duration: 1.2, ease: 'back.out(1.2)' }, 0.6);
-  tl.fromTo('.orbit-stack', { rotate: -25, x: 130 }, { rotate: 12, x: 0, duration: 3.65, ease: 'none' }, 0);
-  tl.to('.fuel-word', { y: -70, duration: 0.6 }, 2.9);
-  tl.set('#next-scene', { autoAlpha: 1 }, 3.2);
-  // Keep the title and sphere inside the composition throughout the scroll-scrubbed entrance.
-  tl.fromTo('.next-left', { xPercent: -6 }, { xPercent: 0, duration: 0.7, ease: 'power4.out' }, 3.2);
-  tl.fromTo('.next-right', { xPercent: 4 }, { xPercent: 0, duration: 0.7, ease: 'power4.out' }, 3.2);
-  tl.fromTo('.next-word span', { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75, stagger: 0.1, ease: 'power3.out' }, 3.45);
-  tl.fromTo('.sphere', { rotateY: -32, rotateZ: -20, scale: 0.6 }, { rotateY: 24, rotateZ: 10, scale: 1, duration: 3.6, ease: 'power2.out' }, 3.2);
-  tl.fromTo('.sphere-label', { opacity: 0 }, { opacity: 1, duration: 0.7 }, 4.15);
-  tl.set('#fuel-scene', { autoAlpha: 0 }, 3.65);
-  tl.set('#city-scene', { autoAlpha: 1 }, 6.4);
-  tl.fromTo('#city-scene', { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 0.7, ease: 'power4.inOut' }, 6.4);
-  tl.fromTo('.city-title span', { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: 'power4.out' }, 6.8);
-  tl.fromTo('.city-scan', { x: 0 }, { x: 1600, duration: 2.7, ease: 'none' }, 6.8);
-  tl.fromTo('.city-grid', { scale: 1.15, rotate: -2 }, { scale: 1, rotate: 0, duration: 4, ease: 'none' }, 6.4);
-  tl.fromTo('.location-pin', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: 'back.out(1.5)' }, 7.7);
-  tl.fromTo('.pin-ring-two', { scale: 0.7, opacity: 1 }, { scale: 1.4, opacity: 0, repeat: 2, duration: 0.7, ease: 'power1.out' }, 8.0);
-  tl.set('#next-scene', { autoAlpha: 0 }, 6.8);
-  tl.set('#brand-scene', { autoAlpha: 1 }, 10);
-  tl.fromTo('#brand-scene', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.75, ease: 'power4.inOut' }, 10);
-  tl.fromTo('.brand-word', { y: 180, scale: 1.12, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 1, ease: 'power4.out' }, 10.35);
-  tl.fromTo('.brand-bottom', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, 11.2);
-  tl.fromTo('.brand-star', { rotate: -80 }, { rotate: 80, duration: 3, ease: 'none' }, 11);
-  tl.fromTo('.brand-orbits', { rotate: 15 }, { rotate: 40, duration: 4, ease: 'none' }, 10);
-  tl.set('#city-scene', { autoAlpha: 0 }, 10.75);
-  tl.to({}, { duration: 0.001 }, 13.999);
-  window.__timelines = window.__timelines || {};
-  window.__timelines.factor76 = tl;
+  const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.inOut" } })
+  tl.set("#scene-two, #scene-three, #scene-four", { autoAlpha: 0 }, 0)
+
+  tl.fromTo(".scene-one .film-copy", { y: 42, opacity: 0 }, { y: 0, opacity: 1, duration: .8, ease: "power4.out" }, .12)
+  tl.fromTo(".scene-one .scene-photo", { scale: 1.13, xPercent: 1 }, { scale: 1.02, xPercent: -1, duration: 3.5, ease: "none" }, 0)
+  tl.fromTo(".orbit-one", { rotation: -35, scale: .82, opacity: 0 }, { rotation: 12, scale: 1, opacity: .75, duration: 2.8, ease: "none" }, .2)
+
+  tl.set("#scene-two", { autoAlpha: 1 }, 3.18)
+  tl.fromTo("#scene-two", { clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)", duration: .75, ease: "power4.inOut" }, 3.18)
+  tl.fromTo(".scene-two .scene-photo", { scale: 1.15, xPercent: -1 }, { scale: 1.02, xPercent: 1, duration: 3.55, ease: "none" }, 3.2)
+  tl.fromTo(".scene-two .film-copy", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: .75, ease: "power4.out" }, 3.48)
+  tl.fromTo(".orbit-two", { rotation: 38, scale: .75, opacity: 0 }, { rotation: -13, scale: 1, opacity: .72, duration: 3.25, ease: "none" }, 3.3)
+  tl.to("#scene-one", { autoAlpha: 0, duration: .22 }, 3.6)
+
+  tl.set("#scene-three", { autoAlpha: 1 }, 6.38)
+  tl.fromTo("#scene-three", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .72, ease: "power4.inOut" }, 6.38)
+  tl.fromTo(".scene-three .scene-photo", { scale: 1.14, xPercent: 1 }, { scale: 1.02, xPercent: -1, duration: 3.95, ease: "none" }, 6.4)
+  tl.fromTo(".scene-three .film-copy", { y: 38, opacity: 0 }, { y: 0, opacity: 1, duration: .8, ease: "power4.out" }, 6.73)
+  tl.fromTo(".orbit-three", { rotation: -42, scale: .72, opacity: 0 }, { rotation: 15, scale: 1, opacity: .75, duration: 3.4, ease: "none" }, 6.5)
+  tl.to("#scene-two", { autoAlpha: 0, duration: .24 }, 6.85)
+
+  tl.set("#scene-four", { autoAlpha: 1 }, 10.18)
+  tl.fromTo("#scene-four", { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: .78, ease: "power4.inOut" }, 10.18)
+  tl.fromTo(".scene-four .scene-photo", { scale: 1.14, xPercent: -1 }, { scale: 1.02, xPercent: 1, duration: 3.7, ease: "none" }, 10.2)
+  tl.fromTo(".closing-brand", { y: 40, opacity: 0, scale: 1.04 }, { y: 0, opacity: 1, scale: 1, duration: .85, ease: "power4.out" }, 10.5)
+  tl.fromTo(".closing-copy", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: .65, ease: "power3.out" }, 11.35)
+  tl.fromTo(".orbit-four", { rotation: -25, scale: .78, opacity: 0 }, { rotation: 18, scale: 1, opacity: .72, duration: 3.5, ease: "none" }, 10.25)
+  tl.to("#scene-three", { autoAlpha: 0, duration: .22 }, 10.67)
+  tl.to({}, { duration: .001 }, 13.999)
+
+  window.__timelines = window.__timelines || {}
+  window.__timelines["factor76-food-film"] = tl
 })();

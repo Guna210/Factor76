@@ -1,204 +1,250 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, Check, Crosshair, Maximize2, Minus, Pause, Play, Plus, RotateCcw, X } from 'lucide-react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import Lenis from 'lenis'
-import BoxBuilder from './components/BoxBuilder'
+import { lazy, Suspense, useEffect, useRef, useState } from "react"
+import { ArrowDown, ArrowRight, ArrowUpRight, MapPin, Menu, Minus, Plus, X } from "lucide-react"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import BoxBuilder from "./components/BoxBuilder"
+import { formatLkr, mealPhotoUrl, meals, photoCredits } from "./data/meals"
 
-const HeroScene = lazy(() => import('./components/HeroScene'))
-const LaunchFilm = lazy(() => import('./components/LaunchFilm'))
+const LaunchFilm = lazy(() => import("./components/LaunchFilm"))
 gsap.registerPlugin(ScrollTrigger)
 
-const concepts = [
-  { number: '01', name: 'THE FIRESTARTER', subtitle: 'Black pepper chicken · red rice · roasted greens', category: 'HIGH PROTEIN', type: 'Protein', energy: '580', protein: '42', color: '#f34e20', shape: 'ribbon' },
-  { number: '02', name: 'GREEN FREQUENCY', subtitle: 'Roast pumpkin · chickpeas · herby rice', category: 'PLANT POWERED', type: 'Plant', energy: '490', protein: '22', color: '#c1cd71', shape: 'sphere' },
-  { number: '03', name: 'ISLAND CURRENT', subtitle: 'Curry-leaf fish · lime rice · sautéed beans', category: 'HIGH PROTEIN', type: 'Protein', energy: '520', protein: '36', color: '#beb2de', shape: 'wave' },
+const rituals = [
+  { number: "01", title: "Pick your favourites.", body: "Choose a few good things for the week ahead.", photo: meals[0] },
+  { number: "02", title: "We make it lovely.", body: "Fresh, flavour-first food, cooked with care.", photo: meals[1] },
+  { number: "03", title: "Your time is back.", body: "Heat, eat, and get on with your day.", photo: meals[2] },
 ]
 
 const faqs = [
-  ['What exactly is Factor76?', 'A concept for chef-prepared meals delivered to your door in Colombo. This is a private design prototype: the meals, prices, and nutrition figures are illustrative, and no orders are being accepted.'],
-  ['Where would you deliver?', 'The initial service area is Colombo city limits. The map is an artistic representation of that proposed area, not a live delivery eligibility checker.'],
-  ['Can I try building a box?', 'Absolutely. Choose 4, 6, or 8 meals, mix your favourites, and review your sample box. Your selection is saved only in this browser. No payment, subscription, or order is created.'],
-  ['What about allergies and dietary needs?', 'The sample menu helps demonstrate how dietary preferences could work. Ingredients, nutritional values, and allergen information will need to be verified before a real launch. Please do not use this prototype to make dietary decisions.'],
+  { question: "What is Factor76?", answer: "A private concept for chef-prepared meals in Colombo. This website is a design prototype; its sample menu and prices are illustrative." },
+  { question: "Where would you deliver?", answer: "The first concept area is Colombo city limits. The map is a visual reference, not a live delivery checker." },
+  { question: "Can I build a sample box?", answer: "Yes. The sample builder lets you choose meals and review a demo subtotal. It saves in this browser and does not create an order or payment." },
+  { question: "Are the photos the actual menu?", answer: "No. The food photography is illustrative inspiration from Unsplash. The menu, ingredients, allergens, nutrition, and final photography have not been verified for a real launch." },
 ]
 
 function App() {
-  const [boxOpen, setBoxOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [exploded, setExploded] = useState(false)
-  const [motion, setMotion] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-  const [filter, setFilter] = useState('All')
-  const [activeFaq, setActiveFaq] = useState<number | null>(0)
-  const [selectedMeal, setSelectedMeal] = useState<(typeof concepts)[number] | null>(null)
   const root = useRef<HTMLDivElement>(null)
-  const detailDialog = useRef<HTMLDialogElement>(null)
-  const cursor = useRef<HTMLDivElement>(null)
-  const filmSection = useRef<HTMLElement>(null)
-  const [filmVisible, setFilmVisible] = useState(false)
+  const [motion, setMotion] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+  const [builderOpen, setBuilderOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
 
   useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setMotion(!media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const syncMotion = () => setMotion(!query.matches)
+    query.addEventListener("change", syncMotion)
+    return () => query.removeEventListener("change", syncMotion)
   }, [])
 
   useEffect(() => {
-    document.documentElement.dataset.motion = motion ? 'full' : 'reduced'
-    if (!motion) return
-    const lenis = new Lenis({ duration: 1.05, smoothWheel: true, anchors: { offset: -90 } })
-    lenis.on('scroll', ScrollTrigger.update)
-    const tick = (time: number) => lenis.raf(time * 1000)
-    gsap.ticker.add(tick)
+    document.documentElement.dataset.motion = motion ? "full" : "reduced"
     const context = gsap.context(() => {
-      gsap.fromTo('.hero-title .line-inner', { yPercent: 110, rotate: 3 }, { yPercent: 0, rotate: 0, duration: 1.2, stagger: .12, ease: 'power4.out', delay: .15 })
-      gsap.fromTo('.hero-intro, .hero-description, .hero-actions, .hero-footer', { opacity: 0, y: 18 }, { opacity: 1, y: 0, stagger: .09, duration: .9, delay: .6, ease: 'power2.out' })
-      gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) => {
-        gsap.fromTo(el, { opacity: .12, y: 60 }, { opacity: 1, y: 0, duration: .9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 91%', once: true } })
-      })
-      gsap.to('.manifesto-word', { backgroundPositionX: '0%', stagger: .15, ease: 'none', scrollTrigger: { trigger: '.manifesto', start: 'top 75%', end: 'bottom 65%', scrub: 1 } })
-      gsap.to('.manifesto-asterisk', { rotation: 180, ease: 'none', scrollTrigger: { trigger: '.manifesto', start: 'top bottom', end: 'bottom top', scrub: 1 } })
-      gsap.to('.flow-line', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: '.ritual-grid', start: 'top 80%', end: 'bottom 60%', scrub: 1 } })
-      gsap.to('.closing-word', { xPercent: -12, ease: 'none', scrollTrigger: { trigger: '.closing', start: 'top bottom', end: 'bottom top', scrub: 1 } })
-    }, root)
-    return () => { context.revert(); gsap.ticker.remove(tick); lenis.destroy() }
-  }, [motion])
+      if (motion) {
+        gsap.fromTo(".hero-copy > *", { y: 25, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.11, delay: 0.12, ease: "power3.out" })
+        gsap.fromTo(".hero-photo", { clipPath: "inset(12% 8% 0 8% round 45% 45% 8px 8px)", opacity: 0.4 }, { clipPath: "inset(0% 0% 0 0% round 45% 45% 8px 8px)", opacity: 1, duration: 1.25, delay: 0.18, ease: "power3.out" })
+        gsap.to(".hero-photo img", { yPercent: 7, ease: "none", scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: 0.7 } })
+        gsap.to(".ticker-track", { xPercent: -22, ease: "none", scrollTrigger: { trigger: ".ticker", start: "top bottom", end: "bottom top", scrub: 1 } })
+        gsap.to(".story-photo img", { yPercent: -8, ease: "none", scrollTrigger: { trigger: ".story-section", start: "top bottom", end: "bottom top", scrub: 0.8 } })
+      }
 
-  useEffect(() => {
-    const node = filmSection.current
-    if (!node) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setFilmVisible(true); observer.disconnect() }
-    }, { rootMargin: '500px' })
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [])
+      gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((element) => {
+        gsap.fromTo(element, { y: motion ? 30 : 0, opacity: motion ? 0 : 1 }, {
+          y: 0,
+          opacity: 1,
+          duration: 0.78,
+          ease: "power3.out",
+          scrollTrigger: { trigger: element, start: "top 88%", once: true },
+        })
+      })
+
+      if (motion) {
+        gsap.utils.toArray<HTMLElement>(".dish-photo img").forEach((image) => {
+          gsap.fromTo(image, { scale: 1.09 }, { scale: 1, duration: 1.1, ease: "power2.out", scrollTrigger: { trigger: image, start: "top 92%", once: true } })
+        })
+      }
+    }, root)
+
+    return () => context.revert()
+  }, [motion])
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => ScrollTrigger.refresh())
     void document.fonts.ready.then(() => ScrollTrigger.refresh())
     return () => cancelAnimationFrame(frame)
-  }, [filter, filmVisible])
+  }, [])
 
-  useEffect(() => {
-    if (!motion || window.matchMedia('(pointer: coarse)').matches) return
-    const move = (event: PointerEvent) => {
-      if (!cursor.current) return
-      cursor.current.style.opacity = '1'
-      cursor.current.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`
-      const target = event.target as HTMLElement
-      cursor.current.classList.toggle('is-interactive', !!target.closest('button, a, summary, input'))
-    }
-    window.addEventListener('pointermove', move)
-    return () => window.removeEventListener('pointermove', move)
-  }, [motion])
-
-  useEffect(() => {
-    if (selectedMeal) detailDialog.current?.showModal()
-    else detailDialog.current?.close()
-  }, [selectedMeal])
-
-  const openBox = () => { detailDialog.current?.close(); setSelectedMeal(null); setMenuOpen(false); setBoxOpen(true) }
   const goTo = (id: string) => {
     setMenuOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: motion ? 'smooth' : 'instant' })
+    document.getElementById(id)?.scrollIntoView({ behavior: motion ? "smooth" : "instant", block: "start" })
   }
 
-  return <div ref={root} className="app-shell">
-    <a className="skip-link" href="#main">Skip to content</a>
-    <div className="custom-cursor" ref={cursor} aria-hidden="true" />
-    <header className="site-header">
-      <a href="#" className="wordmark" aria-label="Factor76 home">factor<span>76</span><span className="wordmark-dot">✳</span></a>
-      <nav className="desktop-nav" aria-label="Main navigation">
-        <a href="#philosophy">The philosophy</a><a href="#menu">The menu <span>↗</span></a><a href="#ritual">The ritual</a>
-      </nav>
-      <div className="header-actions">
-        <span className="demo-badge"><i /> PRIVATE DEMO</span>
-        <button className="header-cta" onClick={openBox}>Build your box <ArrowUpRight size={16} /></button>
-        <button className="mobile-menu-toggle" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <><span /><span /></>}</button>
-      </div>
-    </header>
-    {menuOpen && <nav className="mobile-nav" aria-label="Mobile navigation"><button onClick={() => goTo('philosophy')}>The philosophy <ArrowUpRight /></button><button onClick={() => goTo('menu')}>The menu <ArrowUpRight /></button><button onClick={() => goTo('ritual')}>The ritual <ArrowUpRight /></button><button onClick={openBox}>Build your box <Plus /></button></nav>}
-    <main id="main">
-      <section className="hero" aria-labelledby="hero-heading">
-        <div className="hero-topline mono"><span><i className="status-dot" /> A NEW FREQUENCY OF FOOD</span><span className="hero-coordinates">COLOMBO, LK &nbsp; 6.9271° N / 79.8612° E</span></div>
-        <div className="hero-body">
-          <div className="hero-copy">
-            <div className="hero-intro mono"><span className="tiny-cross">+</span> PREPARED MEALS. REIMAGINED.</div>
-            <h1 className="hero-title" id="hero-heading"><span className="line"><span className="line-inner">FUEL YOUR</span></span><span className="line"><span className="line-inner">NEXT<span className="title-period">.</span><span className="title-star" aria-hidden="true">✳</span></span></span></h1>
-            <p className="hero-description">Big days need better fuel.<br />Extraordinary meals. Zero kitchen time.<br /><span>Made for the way Colombo moves.</span></p>
-            <div className="hero-actions"><button className="button button-dark" onClick={openBox}>Find your factor <ArrowUpRight size={20} /></button><button className="film-link" onClick={() => goTo('transmission')}>Enter the motion lab <ArrowDownRight size={16} /></button></div>
-          </div>
-          <div className="hero-visual">
-            <div className="orbital-guide orbital-guide-one" aria-hidden="true" /><div className="orbital-guide orbital-guide-two" aria-hidden="true" />
-            <div className="scene-coordinate coordinate-top mono">FIG. 076 — DAILY FUEL SYSTEM</div>
-            <div className="hero-scene"><Suspense fallback={<div className="scene-loader"><span />CALIBRATING YOUR NEXT</div>}><HeroScene reducedMotion={!motion} exploded={exploded} /></Suspense></div>
-            <div className="visual-label visual-label-top"><span className="label-connector" /><span className="mono">DESIGNED FOR<br /><b>REAL LIFE.</b></span></div>
-            <button className={`explode-button ${exploded ? 'active' : ''}`} onClick={() => setExploded(!exploded)} aria-pressed={exploded}>{exploded ? <RotateCcw size={15} /> : <Maximize2 size={15} />}<span>{exploded ? 'REASSEMBLE' : 'EXPLORE THE FORM'}</span></button>
-            <span className="scene-coordinate coordinate-bottom mono">MOVE TO EXPLORE <span>↗</span></span>
-            <div className="hero-stamp"><span>NOT YOUR</span><strong>USUAL</strong><span>MEAL PREP.</span></div>
-          </div>
+  return (
+    <div className="site-shell" ref={root}>
+      <a className="skip-link" href="#main">Skip to content</a>
+      <header className="site-header">
+        <a className="wordmark" href="#" aria-label="Factor76 home">factor<span>76</span><i>✳</i></a>
+        <nav className="desktop-nav" aria-label="Main navigation">
+          <a href="#menu">The menu</a>
+          <a href="#story">Our way</a>
+          <a href="#colombo">Colombo</a>
+        </nav>
+        <div className="header-actions">
+          <span className="demo-label"><i />PRIVATE PREVIEW</span>
+          <button className="header-button" onClick={() => setBuilderOpen(true)}>Build a box <ArrowUpRight size={16} /></button>
+          <button className="mobile-menu-toggle" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
         </div>
-        <div className="hero-footer"><a href="#philosophy" className="scroll-cue mono"><span><ArrowDown size={17} /></span> SCROLL TO BREAK THE ROUTINE</a><div className="hero-foot-note mono">GOOD FOOD. MORE LIFE.<br /><span>THE NEXT CHAPTER STARTS HERE.</span></div><span className="edition mono">EDITION 001 / COLOMBO</span></div>
-      </section>
-      <div className="ticker" aria-label="Real food, no friction, made for Colombo"><div className="ticker-track" aria-hidden="true">{Array.from({ length: 4 }, (_, i) => <span key={i}>REAL FOOD <b>✳</b> NO FRICTION <b>✳</b> MORE LIVING <b>✳</b> COLOMBO FIRST <b>✳</b></span>)}</div></div>
+      </header>
+      {menuOpen && <nav className="mobile-nav" aria-label="Mobile navigation">
+        <button onClick={() => goTo("menu")}>The menu <ArrowUpRight /></button>
+        <button onClick={() => goTo("story")}>Our way <ArrowUpRight /></button>
+        <button onClick={() => goTo("colombo")}>Colombo <ArrowUpRight /></button>
+        <button onClick={() => { setMenuOpen(false); setBuilderOpen(true) }}>Build a box <Plus /></button>
+      </nav>}
 
-      <section className="manifesto section-pad" id="philosophy">
-        <div className="section-eyebrow mono"><span>01 / THE PHILOSOPHY</span><span>YOUR TIME IS THE MAIN INGREDIENT.</span></div>
-        <div className="manifesto-content"><h2 aria-label="Life moves fast. Your food should keep up.">{['LIFE MOVES FAST.', 'YOUR FOOD SHOULD', 'KEEP UP.'].map((line) => <span className="manifesto-word" key={line}>{line}</span>)}</h2><span className="manifesto-asterisk" aria-hidden="true">✳</span></div>
-        <div className="manifesto-bottom"><div className="manifesto-symbol" aria-hidden="true"><ArrowDownRight strokeWidth={1} /></div><p data-reveal>Between the early starts and the late finishes, there’s a better way to eat. We’re imagining fresh, fully prepared meals that give you one less thing to think about.<br /><strong>Less planning. More possibilities.</strong></p><span className="vertical-note mono">RETHINK THE EVERYDAY / F76</span></div>
-      </section>
+      <main id="main">
+        <section className="hero" aria-labelledby="hero-heading">
+          <div className="hero-topline mono"><span><i className="live-dot" /> GOOD FOOD FOR THE WEEK AHEAD</span><span>COLOMBO, SRI LANKA</span></div>
+          <div className="hero-body">
+            <div className="hero-copy">
+              <p className="hero-kicker"><span>MEALS, MADE FOR REAL LIFE</span><span>NO. 01 / COLOMBO</span></p>
+              <h1 id="hero-heading">Make room<br />for <em>good.</em></h1>
+              <p className="hero-lede">A very good meal can change the shape of a day.</p>
+              <p className="hero-description">Fresh, chef-prepared food for the days that ask a lot of you. More flavour on your plate. More time for everything else.</p>
+              <div className="hero-actions">
+                <button className="button button-primary" onClick={() => goTo("menu")}>Meet this week’s menu <ArrowDown size={17} /></button>
+                <button className="text-button" onClick={() => goTo("story")}>A little about us <ArrowRight size={16} /></button>
+              </div>
+              <div className="hero-foot"><span className="hero-foot-mark">76</span><span>BIG COLOMBO ENERGY.<br /><b>GOOD THINGS, READY WHEN YOU ARE.</b></span></div>
+            </div>
+            <div className="hero-visual">
+              <div className="hero-photo">
+                <img src={mealPhotoUrl(meals[0], 1600)} srcSet={mealPhotoUrl(meals[0], 900) + " 900w, " + mealPhotoUrl(meals[0], 1600) + " 1600w"} sizes="(max-width: 800px) 100vw, 54vw" alt={meals[0].photoAlt} fetchPriority="high" />
+                <span className="photo-index mono">A VERY GOOD PLACE TO START / 01</span>
+                <div className="hero-photo-note"><span>FRESHLY<br />MADE</span><b>✳</b></div>
+              </div>
+              <div className="hero-stamp"><span>FOR THE<br />LONG WEEK</span><b>✳</b></div>
+              <span className="hero-vertical mono">REAL FOOD · FULL DAYS · COLOMBO</span>
+            </div>
+          </div>
+          <div className="hero-bottom"><a className="scroll-cue" href="#menu"><span><ArrowDown size={15} /></span> SCROLL FOR THE GOOD STUFF</a><span className="hero-bottom-note mono">A PRIVATE FOOD CONCEPT / 2026</span></div>
+        </section>
 
-      <section className="menu-section section-pad" id="menu">
-        <div className="section-eyebrow mono"><span>02 / THE FUEL LINEUP</span><span>CONCEPT MENU — VOL. 01</span></div>
-        <div className="section-heading" data-reveal><h2>GOOD TASTE.<br /><span>GREAT ENERGY.</span></h2><div><p>Island roots. A new attitude.<br />Find the fuel that feels like you.</p><div className="filter-tabs" role="group" aria-label="Filter sample meals">{['All', 'Protein', 'Plant'].map((item) => <button key={item} className={filter === item ? 'selected' : ''} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item === 'All' ? 'All fuel' : item === 'Protein' ? 'High protein' : 'Plant powered'}</button>)}</div></div></div>
-        <div className="meal-grid">{concepts.filter((meal) => filter === 'All' || meal.type === filter).map((meal) => <article className="meal-card" key={meal.number}>
-          <button className="meal-art" style={{ '--card-color': meal.color } as React.CSSProperties} onClick={() => setSelectedMeal(meal)} aria-label={`Explore ${meal.name}`}>
-            <div className="meal-art-label mono"><span>F76 / {meal.number}</span><span>{meal.category}</span></div>
-            <div className={`abstract-object abstract-${meal.shape}`} aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} style={{ '--i': i } as React.CSSProperties} />)}</div>
-            <span className="art-watermark" aria-hidden="true">{meal.type === 'Plant' ? 'PLANT' : meal.number === '01' ? 'FIRE' : 'FLOW'}</span>
-            <span className="meal-art-bottom mono">YOUR DAILY UPGRADE <span className="round-arrow"><ArrowUpRight size={19} /></span></span>
-          </button>
-          <div className="meal-card-info"><div><h3>{meal.name}</h3><p>{meal.subtitle}</p></div><button aria-label={`Open sample box builder for ${meal.name}`} onClick={openBox}><Plus size={23} /></button></div>
-          <div className="meal-macros mono"><span>{meal.energy} KCAL</span><span>{meal.protein}G PROTEIN</span><span>LKR 1,490</span></div>
-        </article>)}</div>
-        <div className="menu-bottom"><span className="mono">A TASTE OF WHAT’S NEXT. ALL DISHES & VALUES ARE ILLUSTRATIVE.</span><button className="text-link" onClick={openBox}>Explore the full demo menu <ArrowUpRight size={19} /></button></div>
-      </section>
+        <div className="ticker" aria-hidden="true"><div className="ticker-track">{Array.from({ length: 4 }, (_, index) => <span key={index}>LESS PREP <b>✳</b> MORE FLAVOUR <b>✳</b> MADE FOR COLOMBO <b>✳</b> MORE LIFE <b>✳</b></span>)}</div></div>
 
-      <section className="transmission section-pad" id="transmission" ref={filmSection}>
-        <div className="section-eyebrow mono"><span>03 / A TRANSMISSION FROM TOMORROW</span><span><i className="status-dot" /> F76 MOTION LAB</span></div>
-          <div className="film-heading" data-reveal><h2>THIS IS YOUR<br /><span>NEXT ERA.</span></h2><p>A little less ordinary.<br />A whole lot more you.<br /><span className="mono">SCROLL TO LET IT UNFOLD.</span></p></div>
-        <div className="film-frame">{filmVisible ? <Suspense fallback={<div className="film-placeholder">F76<span className="mono">CALIBRATING MOTION</span></div>}><LaunchFilm reducedMotion={!motion} /></Suspense> : <div className="film-placeholder">F76<span className="mono">SCROLL TO LET IT UNFOLD</span></div>}</div>
-      </section>
+        <section className="promise-section">
+          <div className="promise-top mono"><span>THE IDEA IS SIMPLE</span><span>GOOD FOOD SHOULD GIVE YOU SOMETHING BACK.</span></div>
+          <div className="promise-main" data-reveal><p className="promise-aside">A LITTLE LESS<br />TO THINK ABOUT.</p><h2>More time<br />to <em>taste</em> the day.</h2><div className="promise-seal"><span>FRESH<br />FLAVOUR<br />FACTOR 76</span><b>✳</b></div></div>
+          <div className="promise-bottom"><span className="promise-mark">✳</span><p>We’re imagining a better kind of everyday meal: generous, full of flavour, and ready to make the rest of your day feel a little lighter.</p><span className="promise-sign mono">SAMPLE MENU ONLY<br />NOT A LIVE FOOD SERVICE</span></div>
+        </section>
 
-      <section className="ritual section-pad" id="ritual">
-        <div className="section-eyebrow mono"><span>04 / THE NEW RITUAL</span><span>LESS TO DO. MORE TO BE.</span></div>
-        <div className="section-heading" data-reveal><h2>THREE STEPS.<br /><span>INFINITE POTENTIAL.</span></h2><p>One simple routine.<br />Room for everything else.</p></div>
-        <div className="ritual-grid"><span className="flow-line" aria-hidden="true" />
-          <article data-reveal><div className="ritual-art ritual-select"><div /><div /><div /><span><Check size={28} /></span></div><div className="ritual-step"><span className="mono">/01</span><ArrowUpRight /></div><h3>MAKE IT YOURS.</h3><p>Build your weekly box. Mix up your meals. Find your own rhythm.</p></article>
-          <article data-reveal><div className="ritual-art ritual-box"><div className="mini-package"><span>factor76</span><i>FUEL YOUR NEXT.</i></div><div className="delivery-dash" /></div><div className="ritual-step"><span className="mono">/02</span><ArrowUpRight /></div><h3>WE TAKE IT FROM HERE.</h3><p>Prepared with care. Delivered to your corner of Colombo.</p></article>
-          <article data-reveal><div className="ritual-art ritual-time"><span>02</span><div className="time-orbit" /><i className="mono">MINUTES*</i></div><div className="ritual-step"><span className="mono">/03</span><ArrowUpRight /></div><h3>HEAT. EAT. REPEAT.</h3><p>Your next good meal is moments away. The rest of the day is yours.</p></article>
-        </div><p className="ritual-disclaimer mono">*CONCEPT PREPARATION TIME. FOLLOW VERIFIED PACKAGING INSTRUCTIONS AT LAUNCH.</p>
-      </section>
+        <section className="menu-section" id="menu">
+          <div className="section-heading" data-reveal>
+            <div><p className="section-kicker mono"><span>01 / THE MENU</span><span>COLOMBO EDITION</span></p><h2>Good things<br />are <em>cooking.</em></h2></div>
+            <p>Bold little favourites, dreamed up for the week ahead. Find your new go-to.</p>
+          </div>
+          <div className="dish-grid">
+            {meals.slice(0, 3).map((meal, index) => (
+              <article className="dish-card" key={meal.id} data-reveal>
+                <div className="dish-photo">
+                  <img src={mealPhotoUrl(meal, 1000)} alt={meal.photoAlt} loading="lazy" decoding="async" />
+                  <span className="dish-number mono">0{index + 1} / 03</span>
+                  <span className="dish-category">{meal.category === "Plant" ? "PLANT-BASED" : "A LITTLE PROTEIN"}</span>
+                </div>
+                <div className="dish-card-copy">
+                  <p className="dish-note mono">{meal.note}</p>
+                  <h3>{meal.name}</h3>
+                  <p className="dish-description">{meal.description}</p>
+                  <div className="dish-card-bottom"><span>{formatLkr(meal.price)} <small>/ sample meal</small></span><button onClick={() => setBuilderOpen(true)} aria-label={"Build a sample box with " + meal.name}><ArrowUpRight size={18} /></button></div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="menu-note mono"><span>MENU & PRICES ARE ILLUSTRATIVE</span><span>PHOTOGRAPHY IS FOR MOOD, NOT AN EXACT DISH DEPICTION</span></div>
+          <button className="menu-builder-link" onClick={() => setBuilderOpen(true)}>Build your sample box <ArrowRight size={18} /></button>
+        </section>
 
-      <section className="coverage" id="colombo">
-        <div className="coverage-copy" data-reveal><div className="mono"><i className="status-dot" /> ROOTED HERE. READY FOR WHAT’S NEXT.</div><h2>COLOMBO.<br />YOU’RE UP<span>↗</span></h2><p>From the first meeting to the last set.<br />From the city rush to the ocean hush.<br />A new everyday, starting right here.</p><div className="coverage-tag mono"><Crosshair size={17} /> COLOMBO CITY LIMITS <span>PHASE 01</span></div><span className="coverage-note mono">PROPOSED SERVICE AREA / PRIVATE CONCEPT</span></div>
-        <div className="city-map" role="img" aria-label="Japanese Ink-style map poster of Colombo, Sri Lanka, using OpenStreetMap data. Illustrative only; it does not show delivery eligibility.">
-          <img src="/maps/colombo-japanese-ink.webp" alt="" loading="lazy" decoding="async" />
-        </div>
-      </section>
+        <section className="story-section" id="story">
+          <div className="story-photo" data-reveal>
+            <img src={mealPhotoUrl(meals[1], 1400)} alt={meals[1].photoAlt} loading="lazy" decoding="async" />
+            <span className="story-photo-caption mono">A LITTLE ISLAND IN EVERY BITE / COLOMBO</span>
+            <span className="story-photo-stamp">✳</span>
+          </div>
+          <div className="story-copy" data-reveal>
+            <p className="section-kicker mono"><span>02 / OUR WAY</span><span>GOOD FOOD, LITTLE ADMIN</span></p>
+            <h2>Make your<br />weekday taste<br /><em>like something.</em></h2>
+            <p>We believe the best meal plans leave plenty of room for life. So we’re dreaming up food with a little island soul, all the good bits already done, and nothing between you and a proper lunch.</p>
+            <button className="story-link" onClick={() => goTo("routine")}>How the good week works <ArrowRight size={17} /></button>
+          </div>
+        </section>
 
-      <section className="faq-section section-pad"><div data-reveal><span className="mono">05 / GOOD QUESTIONS</span><h2>A LITTLE<br />MORE INTEL<span>.</span></h2></div><div className="faq-list">{faqs.map(([question, answer], index) => <article className={`faq-item ${activeFaq === index ? 'is-open' : ''}`} key={question}><h3><button aria-expanded={activeFaq === index} aria-controls={`faq-${index}`} onClick={() => setActiveFaq(activeFaq === index ? null : index)}><span className="mono">0{index + 1}</span>{question}{activeFaq === index ? <Minus size={18} /> : <Plus size={18} />}</button></h3><div id={`faq-${index}`} className="faq-answer" hidden={activeFaq !== index}><p>{answer}</p></div></article>)}</div></section>
+        <section className="film-section" id="routine">
+          <div className="film-intro">
+            <p className="section-kicker mono"><span>03 / A LITTLE FOOD FILM</span><span>SCROLL TO LET IT UNFOLD</span></p>
+            <h2>From our table<br />to <em>your Tuesday.</em></h2>
+            <p>A few good ingredients. A little care. The beginning of a very good day.</p>
+          </div>
+          <Suspense fallback={<div className="film-loader">FACTOR76 / A LITTLE FOOD FILM</div>}>
+            <LaunchFilm reducedMotion={!motion} />
+          </Suspense>
+        </section>
 
-      <section className="closing"><div className="closing-top mono"><span>YOU’VE GOT PLACES TO BE.</span><span>WE’VE GOT A BOX FOR THAT.</span></div><div className="closing-main"><h2>MEET YOUR<br />NEXT FACTOR<span>.</span></h2><button className="closing-cta" onClick={openBox} aria-label="Build your sample box"><ArrowUpRight /><span className="mono">LET’S BUILD<br />YOUR BOX</span></button></div><div className="closing-word" aria-hidden="true">GOOD FOOD. MORE LIFE. GOOD FOOD.</div></section>
-    </main>
-    <footer className="footer"><a className="wordmark" href="#">factor<span>76</span><span className="wordmark-dot">✳</span></a><div className="footer-note mono">A BETTER EVERYDAY, IN THE MAKING.<br /><span>COLOMBO, SRI LANKA.</span></div><div className="footer-meta mono"><span>© 2026 FACTOR76 CONCEPT</span><span>PRIVATE DEMO · NO ORDERS OR PAYMENTS</span></div><a href="#" className="back-top" aria-label="Back to top"><ArrowUpRight size={22} /></a></footer>
-    <button className="motion-toggle mono" onClick={() => setMotion(!motion)} aria-pressed={motion} aria-label={motion ? 'Pause decorative animations' : 'Enable decorative animations'}>{motion ? <Pause size={11} /> : <Play size={11} />} MOTION {motion ? 'ON' : 'OFF'}</button>
-    <BoxBuilder open={boxOpen} onClose={() => setBoxOpen(false)} />
-    <dialog className="meal-detail-dialog" ref={detailDialog} aria-labelledby="meal-detail-title" data-lenis-prevent onCancel={() => setSelectedMeal(null)} onClick={(e) => { if (e.target === detailDialog.current) setSelectedMeal(null) }}>
-      {selectedMeal && <div><button className="detail-close" aria-label="Close meal details" onClick={() => setSelectedMeal(null)}><X /></button><span className="mono">F76 / CONCEPT {selectedMeal.number}</span><h2 id="meal-detail-title">{selectedMeal.name}</h2><p>{selectedMeal.subtitle}</p><div className="detail-stats"><span><strong>{selectedMeal.energy}</strong>KCAL</span><span><strong>{selectedMeal.protein}g</strong>PROTEIN</span><span><strong>1,490</strong>LKR / MEAL</span></div><p className="detail-note">An illustrative meal concept. Ingredients, allergens, pricing, and nutrition are not verified. This private demo does not accept orders.</p><button className="button button-dark" onClick={openBox}>Explore the sample box <ArrowRight size={18} /></button></div>}
-    </dialog>
-  </div>
+        <section className="ritual-section">
+          <div className="section-heading" data-reveal>
+            <div><p className="section-kicker mono"><span>04 / THE GOOD ROUTINE</span><span>LESS TO PLAN, MORE TO ENJOY</span></p><h2>Your week,<br />well <em>fed.</em></h2></div>
+            <p>Good food can fit into the life you already have.</p>
+          </div>
+          <div className="ritual-grid">
+            {rituals.map((step) => (
+              <article className="ritual-card" key={step.number} data-reveal>
+                <div className="ritual-photo"><img src={mealPhotoUrl(step.photo, 800)} alt="" loading="lazy" decoding="async" /><span>{step.number}</span></div>
+                <div className="ritual-card-index mono"><span>THE SHORT VERSION</span><ArrowUpRight size={15} /></div>
+                <h3>{step.title}</h3><p>{step.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="colombo-section" id="colombo">
+          <div className="colombo-copy">
+            <p className="section-kicker mono"><span>05 / ROOTED HERE</span><span>COLOMBO, SRI LANKA</span></p>
+            <h2>A good<br />thing for<br /><em>our city.</em></h2>
+            <p>From the first coffee to the last train home, Colombo keeps its own pace. We’re imagining food that can keep up with yours.</p>
+            <div className="colombo-tag"><MapPin size={16} /><span>COLOMBO CITY LIMITS</span><b>PHASE 01</b></div>
+            <span className="colombo-note mono">PROPOSED SERVICE AREA / PRIVATE CONCEPT</span>
+          </div>
+          <div className="city-map">
+            <img src="/maps/colombo-japanese-ink.webp" alt="Illustrative map of Colombo, Sri Lanka" loading="lazy" decoding="async" />
+            <span className="map-caption mono">A LITTLE CLOSER TO HOME / 06°55′38″N 79°50′48″E</span>
+          </div>
+        </section>
+
+        <section className="faq-section">
+          <div className="faq-heading" data-reveal><p className="section-kicker mono"><span>06 / GOOD QUESTIONS</span><span>THE SHORT VERSION</span></p><h2>Curious?<br /><em>Good.</em></h2><p>A few things about this little preview.</p></div>
+          <div className="faq-list">
+            {faqs.map((item, index) => <article className={"faq-item " + (openFaq === index ? "is-open" : "")} key={item.question}>
+              <h3><button aria-expanded={openFaq === index} aria-controls={"faq-answer-" + index} onClick={() => setOpenFaq(openFaq === index ? null : index)}><span className="mono">0{index + 1}</span><strong>{item.question}</strong>{openFaq === index ? <Minus size={17} /> : <Plus size={17} />}</button></h3>
+              <div className="faq-answer" id={"faq-answer-" + index} hidden={openFaq !== index}><p>{item.answer}</p></div>
+            </article>)}
+          </div>
+        </section>
+
+        <section className="closing">
+          <div className="closing-top mono"><span>YOU HAVE PLACES TO BE.</span><span>WE HAVE A VERY GOOD IDEA.</span></div>
+          <div className="closing-main"><div><span className="closing-kicker mono">FACTOR76 / COLOMBO</span><h2>Eat well.<br /><em>Go on.</em></h2></div><button className="closing-cta" onClick={() => setBuilderOpen(true)} aria-label="Open the sample box builder"><span>LET’S<br />BUILD</span><ArrowUpRight size={25} /></button></div>
+          <div className="closing-scribble">GOOD FOOD / MORE LIFE / GOOD FOOD / MORE LIFE /</div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <a className="wordmark" href="#" aria-label="Factor76 home">factor<span>76</span><i>✳</i></a>
+        <p className="mono">A COLOMBO FOOD CONCEPT<br />PRIVATE DESIGN PREVIEW / 2026</p>
+        <div className="footer-credits"><span className="mono">FOOD PHOTOS</span>{photoCredits.map((credit) => <a href={credit.page} key={credit.name} target="_blank" rel="noreferrer">{credit.name}</a>)}<span>via Unsplash</span></div>
+        <button className="back-top mono" onClick={() => window.scrollTo({ top: 0, behavior: motion ? "smooth" : "instant" })}>BACK TO THE TOP ↑</button>
+        <span className="footer-disclaimer mono">SAMPLE MENU ONLY · NO ORDERS OR PAYMENTS</span>
+      </footer>
+      <button className="motion-toggle" aria-pressed={motion} onClick={() => setMotion(!motion)}><span>{motion ? "✳" : "Ⅱ"}</span>{motion ? "MOTION ON" : "MOTION PAUSED"}</button>
+      <BoxBuilder open={builderOpen} onClose={() => setBuilderOpen(false)} />
+    </div>
+  )
 }
 
 export default App

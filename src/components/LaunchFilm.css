@@ -1,7 +1,48 @@
-.launch-film{position:relative;display:grid;place-items:center;width:100%;height:100vh;height:100svh;overflow:hidden;background:#f1f0e8;isolation:isolate}
-.launch-film-stage{display:block;position:relative;width:100%;width:min(100vw,177.777svh);height:auto;max-width:100%;aspect-ratio:16/9;background:#1b1b18}
-.launch-film[data-layout="portrait"] .launch-film-stage{width:100%;width:min(100vw,56.25svh);aspect-ratio:9/16}
-.launch-film-stage hyperframes-player{position:absolute;inset:0}
-.launch-film-error{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;background:#1b1e18;color:#f1f0e8}
-.launch-film-error>strong{font:800 clamp(48px,9vw,120px) 'Barlow Condensed',Impact,sans-serif}
-.launch-film-error>.mono{font-size:8px;letter-spacing:.12em;color:#a8ad9d}
+.launch-film {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #17382d;
+}
+.launch-film-stage { position: absolute; inset: 0; overflow: hidden; }
+.launch-film-player { position: absolute; inset: 0; z-index: 1; }
+.launch-film-player hyperframes-player { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.launch-film-scrub-hint {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 15px;
+  transform: translateX(-50%);
+  color: #fbf8ef;
+  font-size: 8px;
+  text-shadow: 0 1px 5px #0008;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.launch-film-error {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: #17382d;
+  color: #fbf8ef;
+}
+.launch-film-error strong { font: 700 clamp(54px, 12vw, 130px)/.9 Georgia, serif; letter-spacing: -.08em; }
+.launch-film-error .mono { color: #e2bf73; font-size: 8px; }
+@media (max-width: 760px) {
+  .launch-film { min-height: 570px; height: 100svh; }
+  .launch-film-scrub-hint { bottom: 12px; font-size: 7px; }
+}
+@media (max-width: 420px) {
+  .launch-film-scrub-hint { font-size: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .launch-film-scrub-hint { display: none; }
+}
